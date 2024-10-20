@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Messaging with Lock</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .hidden {
+            display: none;
+        }
+        input[type="password"], input[type="text"], button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Secure Messaging</h1>
+
+        <div id="lockSection">
+            <h3>Enter Password to Unlock Messaging</h3>
+            <input type="password" id="password" placeholder="Enter Password">
+            <button onclick="unlock()">Unlock</button>
+        </div>
+
+        <div id="messageSection" class="hidden">
+            <h3>Send Message via Telegram</h3>
+            <input type="text" id="message" placeholder="Type your message">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+
+    </div>
+
+    <script>
+        const validPassword = "2829"; // You can set your password here
+
+        function unlock() {
+            const enteredPassword = document.getElementById("password").value;
+            if (enteredPassword === validPassword) {
+                document.getElementById("lockSection").classList.add("hidden");
+                document.getElementById("messageSection").classList.remove("hidden");
+            } else {
+                alert("Incorrect password!");
+            }
+        }
+
+        function sendMessage() {
+            const message = document.getElementById("message").value;
+
+            if (message === "") {
+                alert("Please enter a message");
+                return;
+            }
+
+            const telegramBotToken = "7466975948:AAHZQ2l9EH9ifth0jBrOgOw3sSyuBXB_gHU"; // Replace with your bot token
+            const chatId = "7465934228"; // Replace with your chat ID
+            const apiUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`;
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        alert("Message sent!");
+                    } else {
+                        alert("Failed to send message.");
+                    }
+                })
+                .catch(error => {
+                    alert("Error: " + error);
+                });
+        }
+    </script>
+
+</body>
+</html>
