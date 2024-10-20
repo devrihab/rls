@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Telegram Messaging with Lock</title>
     <style>
-      body {
+        body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
@@ -15,6 +16,7 @@
             justify-content: center;
             align-items: center;
         }
+
         .container {
             background-color: #fff;
             padding: 20px;
@@ -23,42 +25,58 @@
             text-align: center;
             width: 300px;
         }
-        input[type="text"], button {
-            width: 100%;
-            padding: 10px;
+
+        input[type="text"],
+        input[type="password"] {
+            width: 95%;
+            height: 40px;
             margin: 10px 0;
+            padding-left: 10px;
+            border-radius: 10px;
+            border: solid rgba(0, 0, 0, 0.349) 1px;
         }
+
+        button {
+            width: 100%;
+            height: 40px;
+            margin: 10px 0;
+            background-color: rgb(45, 45, 255);
+            color: white;
+            border: 0;
+            border-radius: 10px;
+        }
+
         h1 {
             font-size: 24px;
             margin-bottom: 20px;
         }
+
         h3 {
             font-size: 18px;
             margin-bottom: 10px;
         }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
-<body>
 
+<body>
     <div class="container">
         <h1>Secure Messaging</h1>
 
-        <p>
-            edi anak sugalle
-        </p>
-
         <div id="lockSection">
             <h3>Enter Password to Unlock Messaging</h3>
-            <input type="password" id="password" placeholder="Enter Password">
+            <input type="password" id="password" placeholder="Enter Password" />
             <button onclick="unlock()">Unlock</button>
         </div>
 
         <div id="messageSection" class="hidden">
-            <h3>Send Message via Telegram</h3>
-            <input type="text" id="message" placeholder="Type your message">
+            <p>Edi anak sugalle</p>
+            <input type="text" id="message" placeholder="Type your message" />
             <button onclick="sendMessage()">Send</button>
         </div>
-
     </div>
 
     <script>
@@ -82,24 +100,27 @@
                 return;
             }
 
-            const telegramBotToken = "7466975948:AAHZQ2l9EH9ifth0jBrOgOw3sSyuBXB_gHU"; // Replace with your bot token
+            const telegramBotToken =
+                "7466975948:AAHZQ2l9EH9ifth0jBrOgOw3sSyuBXB_gHU"; // Replace with your bot token
             const chatId = "7465934228"; // Replace with your chat ID
-            const apiUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`;
+            const apiUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(
+                message
+            )}`;
 
             fetch(apiUrl)
-                .then(response => response.json())
-                .then(data => {
+                .then((response) => response.json())
+                .then((data) => {
                     if (data.ok) {
                         alert("Message sent!");
                     } else {
                         alert("Failed to send message.");
                     }
                 })
-                .catch(error => {
+                .catch((error) => {
                     alert("Error: " + error);
                 });
         }
     </script>
-
 </body>
+
 </html>
