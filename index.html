@@ -3,91 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IG Direct Clone</title>
+    <title>IG x Telegram</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background-color: #000; color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        .ig-blue { background-color: #3797F0; }
-        .ig-dark-grey { background-color: #262626; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        body { background: #000; color: white; }
+        .ig-blue { background: #3797F0; }
+        .ig-grey { background: #262626; }
     </style>
 </head>
 <body class="h-screen flex flex-col items-center">
 
-    <div class="w-full max-w-md h-full flex flex-col border-x border-gray-800">
-        
-        <div class="p-4 border-b border-gray-800 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-400 to-purple-600"></div>
-                <span class="font-bold">Chat_User</span>
-            </div>
-            <div class="flex gap-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48V208a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V48A16,16,0,0,1,56,32H200A16,16,0,0,1,216,48Z" opacity="0.2"></path><path d="M200,32H56A16,16,0,0,0,40,48V208a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V48A16,16,0,0,0,200,32Zm0,176H56V48H200V208Z"></path></svg>
-            </div>
+    <div class="w-full max-w-md h-full flex flex-col border-x border-zinc-800">
+        <div class="p-4 border-b border-zinc-800 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-500 to-fuchsia-600"></div>
+            <span class="font-bold">Telegram_Chat</span>
         </div>
 
-        <div id="chat-box" class="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
-            </div>
+        <div id="chat-box" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3"></div>
 
-        <div class="p-4">
-            <form id="chat-form" class="flex items-center gap-2 bg-black border border-gray-700 rounded-full px-4 py-2">
-                <input type="text" id="message-input" placeholder="Message..." class="bg-transparent flex-1 outline-none text-sm py-1">
-                <button type="submit" class="text-blue-500 font-semibold text-sm">Send</button>
-            </form>
-        </div>
+        <form id="chat-form" class="p-4 flex gap-2">
+            <input type="text" id="msg-input" placeholder="Message..." 
+                class="flex-1 bg-zinc-900 border border-zinc-700 rounded-full px-4 py-2 outline-none text-sm">
+            <button type="submit" class="text-blue-500 font-bold px-2">Send</button>
+        </form>
     </div>
 
     <script>
-        // 1. Initialize Supabase
-        const SUPABASE_URL = 'https://gvunnllpflgknfhjgspc.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2dW5ubGxwZmxna25maGpnc3BjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MDAyOTUsImV4cCI6MjA4NTI3NjI5NX0.xu0ruqjNqbpb73BguRkuc3AJwxrktNdObOaHya18nTU';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const BOT_TOKEN = '7466975948:AAHZQ2l9EH9ifth0jBrOgOw3sSyuBXB_gHU';
+        const CHAT_ID = '7465934228'; // Your personal Telegram ID
+        let lastUpdateId = 0;
 
         const chatBox = document.getElementById('chat-box');
-        const chatForm = document.getElementById('chat-form');
-        const messageInput = document.getElementById('message-input');
 
-        // 2. Function to render a single message bubble
-        function renderMessage(msg) {
+        function addBubble(text, isMe) {
             const div = document.createElement('div');
-            const isMe = msg.username === 'Me'; // Simple check for demo
-            
-            div.className = `max-w-[70%] p-3 rounded-2xl text-sm ${isMe ? 'ig-blue self-end rounded-br-none' : 'ig-dark-grey self-start rounded-bl-none'}`;
-            div.innerText = msg.content;
+            div.className = `max-w-[80%] px-4 py-2 rounded-2xl text-sm ${isMe ? 'ig-blue self-end' : 'ig-grey self-start'}`;
+            div.innerText = text;
             chatBox.appendChild(div);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        // 3. Listen for Real-time Updates
-        supabase
-            .channel('public:messages')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                renderMessage(payload.new);
-            })
-            .subscribe();
-
-        // 4. Send Message Logic
-        chatForm.onsubmit = async (e) => {
+        // 1. Send Message to Telegram
+        document.getElementById('chat-form').onsubmit = async (e) => {
             e.preventDefault();
-            const content = messageInput.value;
-            if (!content) return;
+            const text = document.getElementById('msg-input').value;
+            if(!text) return;
 
-            const { error } = await supabase
-                .from('messages')
-                .insert([{ content: content, username: 'Me' }]);
+            addBubble(text, true);
+            document.getElementById('msg-input').value = '';
 
-            if (error) console.error(error);
-            messageInput.value = '';
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: CHAT_ID, text: text })
+            });
         };
 
-        // 5. Initial Load
-        async function loadMessages() {
-            const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
-            data.forEach(renderMessage);
+        // 2. Poll for New Messages from Telegram
+        async function getUpdates() {
+            try {
+                const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastUpdateId + 1}`);
+                const data = await res.json();
+                
+                data.result.forEach(update => {
+                    lastUpdateId = update.update_id;
+                    if (update.message && update.message.text) {
+                        addBubble(update.message.text, false);
+                    }
+                });
+            } catch (e) { console.error("Polling error", e); }
+            setTimeout(getUpdates, 3000); // Check every 3 seconds
         }
-        loadMessages();
+
+        getUpdates();
     </script>
 </body>
 </html>
