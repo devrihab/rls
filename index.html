@@ -3,80 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IG x Telegram</title>
+    <title>Direct Messages</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #000; color: white; }
-        .ig-blue { background: #3797F0; }
-        .ig-grey { background: #262626; }
+        body { background-color: #000; color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; }
+        .ig-blue { background-color: #3797F0; }
+        .ig-input { background-color: #121212; border: 1px solid #363636; }
+        .hidden { display: none !important; }
+        #chat-box::-webkit-scrollbar { width: 4px; }
+        #chat-box::-webkit-scrollbar-thumb { background: #262626; border-radius: 10px; }
     </style>
 </head>
-<body class="h-screen flex flex-col items-center">
+<body class="h-screen flex items-center justify-center p-0 sm:p-4">
 
-    <div class="w-full max-w-md h-full flex flex-col border-x border-zinc-800">
-        <div class="p-4 border-b border-zinc-800 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-500 to-fuchsia-600"></div>
-            <span class="font-bold">Telegram_Chat</span>
+    <div id="lockSection" class="w-full max-w-sm p-8 flex flex-col items-center text-center">
+        <div class="w-20 h-20 mb-6 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 p-1">
+            <div class="w-full h-full bg-black rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+            </div>
+        </div>
+        <h1 class="text-2xl font-bold mb-2">Private DM</h1>
+        <p class="text-gray-500 mb-6 text-sm">Enter the 4-digit passcode</p>
+        <input type="password" id="password" inputmode="numeric" placeholder="••••" class="w-full max-w-[150px] text-center text-2xl tracking-widest ig-input rounded-xl px-4 py-3 mb-4 outline-none focus:border-blue-500">
+        <button onclick="unlock()" class="w-full max-w-[150px] bg-white text-black font-bold py-2 rounded-lg hover:bg-gray-200 transition">Unlock</button>
+    </div>
+
+    <div id="messageSection" class="hidden w-full max-w-md h-screen sm:h-[90vh] flex flex-col border border-zinc-800 sm:rounded-2xl overflow-hidden bg-black">
+        <div class="p-4 border-b border-zinc-800 flex items-center justify-between bg-black">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-blue-400">TG</div>
+                <div>
+                    <p class="font-bold text-sm">Telegram Chat</p>
+                    <p class="text-green-500 text-[10px] flex items-center gap-1">● <span class="text-gray-400">Active now</span></p>
+                </div>
+            </div>
         </div>
 
-        <div id="chat-box" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3"></div>
+        <div id="chat-box" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-black">
+            </div>
 
-        <form id="chat-form" class="p-4 flex gap-2">
-            <input type="text" id="msg-input" placeholder="Message..." 
-                class="flex-1 bg-zinc-900 border border-zinc-700 rounded-full px-4 py-2 outline-none text-sm">
-            <button type="submit" class="text-blue-500 font-bold px-2">Send</button>
-        </form>
+        <div class="p-4 bg-black">
+            <form onsubmit="event.preventDefault(); sendMessage();" class="flex items-center gap-3 ig-input rounded-full px-5 py-2">
+                <input type="text" id="message" placeholder="Message..." class="bg-transparent flex-1 outline-none text-sm py-1">
+                <button type="submit" class="text-blue-500 font-bold text-sm active:scale-95 transition">Send</button>
+            </form>
+        </div>
     </div>
 
     <script>
-        const BOT_TOKEN = '7466975948:AAHQKI0JeQZD6185hmZC1SxgmrR1lxmymQU';
-        const CHAT_ID = '7465934228'; // Your personal Telegram ID
+        const validPassword = "2829";
+        const botToken = "7466975948:AAHQKI0JeQZD6185hmZC1SxgmrR1lxmymQU";
+        const chatId = "7465934228";
         let lastUpdateId = 0;
 
-        const chatBox = document.getElementById('chat-box');
+        function unlock() {
+            if (document.getElementById("password").value === validPassword) {
+                document.getElementById("lockSection").classList.add("hidden");
+                document.getElementById("messageSection").classList.remove("hidden");
+                startPolling(); // Start looking for replies
+            } else {
+                alert("Access Denied");
+            }
+        }
 
-        function addBubble(text, isMe) {
+        function createBubble(text, isMe) {
+            const chatBox = document.getElementById('chat-box');
             const div = document.createElement('div');
-            div.className = `max-w-[80%] px-4 py-2 rounded-2xl text-sm ${isMe ? 'ig-blue self-end' : 'ig-grey self-start'}`;
+            div.className = isMe 
+                ? "ig-blue self-end px-4 py-2 rounded-2xl rounded-br-sm max-w-[85%] text-[14px] shadow-sm" 
+                : "bg-zinc-800 self-start px-4 py-2 rounded-2xl rounded-bl-sm max-w-[85%] text-[14px] border border-zinc-700";
             div.innerText = text;
             chatBox.appendChild(div);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        // 1. Send Message to Telegram
-        document.getElementById('chat-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const text = document.getElementById('msg-input').value;
-            if(!text) return;
+        async function sendMessage() {
+            const input = document.getElementById("message");
+            const text = input.value.trim();
+            if (!text) return;
 
-            addBubble(text, true);
-            document.getElementById('msg-input').value = '';
+            createBubble(text, true);
+            input.value = "";
 
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: CHAT_ID, text: text })
-            });
-        };
-
-        // 2. Poll for New Messages from Telegram
-        async function getUpdates() {
             try {
-                const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastUpdateId + 1}`);
-                const data = await res.json();
-                
-                data.result.forEach(update => {
-                    lastUpdateId = update.update_id;
-                    if (update.message && update.message.text) {
-                        addBubble(update.message.text, false);
-                    }
+                await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chatId, text: text })
                 });
-            } catch (e) { console.error("Polling error", e); }
-            setTimeout(getUpdates, 3000); // Check every 3 seconds
+            } catch (e) { console.error("Send error", e); }
         }
 
-        getUpdates();
+        async function startPolling() {
+            try {
+                const res = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates?offset=${lastUpdateId + 1}&timeout=30`);
+                const data = await res.json();
+                
+                if (data.ok && data.result.length > 0) {
+                    data.result.forEach(update => {
+                        lastUpdateId = update.update_id;
+                        if (update.message && update.message.text && update.message.chat.id.toString() === chatId) {
+                            createBubble(update.message.text, false);
+                        }
+                    });
+                }
+            } catch (e) { console.error("Polling error", e); }
+            setTimeout(startPolling, 3000);
+        }
     </script>
 </body>
 </html>
-
